@@ -1,7 +1,9 @@
 {
   "name": "jsdom-eval",
-  "version": "0.0.0",
-  "bin": {"jsdom-eval": "./cli.js"},
+  "version": "0.0.1",
+  "bin": {
+    "jsdom-eval": "./cli.js"
+  },
   "description": "eval js inside jsdom for simple testing that requires the dom",
   "main": "index.js",
   "scripts": {
