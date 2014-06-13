@@ -1,0 +1,31 @@
+{
+  "name": "jsdom-eval",
+  "version": "0.0.0",
+  "bin": {"jsdom-eval": "./cli.js"},
+  "description": "eval js inside jsdom for simple testing that requires the dom",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hayes/jsdom-eval.git"
+  },
+  "keywords": [
+    "dom",
+    "jsdom",
+    "test",
+    "eval"
+  ],
+  "author": "Michael Hayes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hayes/jsdom-eval/issues"
+  },
+  "homepage": "https://github.com/hayes/jsdom-eval",
+  "dependencies": {
+    "concat-stream": "^1.4.6",
+    "jsdom": "^0.10.6",
+    "minimist": "^0.1.0"
+  }
+}
