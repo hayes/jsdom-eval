@@ -4,7 +4,7 @@ jsdom-eval
 eval js inside jsdom for simple testing that requires the dom
 
 ## Usage
-`jsdom ./my.js --html ./optional.html`
+`jsdom-eval ./my.js --html ./optional.html`
 
 or
 
