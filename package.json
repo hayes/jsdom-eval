@@ -27,7 +27,7 @@
   "homepage": "https://github.com/hayes/jsdom-eval",
   "dependencies": {
     "concat-stream": "^1.4.6",
-    "jsdom": "^0.10.6",
+    "jsdom": "^0.11.0",
     "minimist": "^0.1.0"
   }
 }
