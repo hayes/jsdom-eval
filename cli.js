@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 var concat = require('concat-stream')
   , jsdom_eval = require('./index')
   , path = require('path')
@@ -46,6 +45,7 @@ function got_html(data) {
 
 function run() {
   jsdom_eval(js, html, function(err) {
-    throw err
+    console.error(err)
+    process.exit(1)
   })
 }
