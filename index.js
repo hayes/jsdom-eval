@@ -44,24 +44,10 @@ function run(script, html, done) {
 
   function handle_error(err) {
     var stack = err.stack.split('\n')
-    var lines = stack.slice(1).map(update_line)
 
-    var err_message = [stack[0]].concat(lines).join('\n')
-      , original = get_original(stack[1])
-
-    if(!original || !original.source) {
-      return done(err_message)
-    }
-
-    var first = Math.max(original.line - 5, 0)
-    var snipet = original.content.slice(first, 11)
-
-    snipet.splice(
-        original.line - first
-      , 0
-      , new Array(original.column + 1).join(' ') + '^'
-    )
-    done(err_message + '\n\n' + snipet.join('\n'))
+    err.stack = [stack[0]].concat(stack.slice(1).map(update_line)).join('\n')
+    err.originalLocation = get_original(stack[1])
+    done(err)
   }
 
   function update_line(line) {

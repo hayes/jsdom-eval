@@ -4,8 +4,7 @@ var concat = require('concat-stream')
   , path = require('path')
   , fs = require('fs')
 
-var on_error = console.error.bind(console)
-  , remaining = 2
+var remaining = 2
   , html
   , js
 
@@ -44,8 +43,28 @@ function got_html(data) {
 }
 
 function run() {
-  jsdom_eval(js, html, function(err) {
-    console.error(err)
+  jsdom_eval(js, html, on_error)
+}
+
+function on_error(err) {
+  var original = err.originalLocation
+
+  if(!original || !original.content) {
+    console.error(err.stack)
     process.exit(1)
-  })
+  }
+
+
+  var first = Math.max(original.line - 5, 0)
+  var snipet = original.content.slice(first, 11)
+
+  snipet.splice(
+      original.line - first
+    , 0
+    , new Array(original.column + 1).join(' ') + '^'
+  )
+
+  console.error(snipet.join('\n'))
+  console.error(err.stack)
+  process.exit(1)
 }
