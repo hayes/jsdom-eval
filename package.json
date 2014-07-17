@@ -28,7 +28,7 @@
   "dependencies": {
     "concat-stream": "^1.4.6",
     "convert-source-map": "^0.3.5",
-    "jsdom": "git://github.com/tmpvar/jsdom/#049a52330576f877e526d2dfc84c5b651f4e684c",
+    "jsdom": "git://github.com/tmpvar/jsdom.git#049a52330576f877e526d2dfc84c5b651f4e684c",
     "minimist": "^0.1.0",
     "source-map": "^0.1.37"
   }
