@@ -1,7 +1,11 @@
 jsdom-eval
 ==========
 
-eval js inside jsdom for simple testing that requires the dom
+eval js inside jsdom for simple testing that requires the dom.
+if there are uncought exceptions jsdom-eval will print the trace
+along with a snippet showing where the error was thrown
+
+sourcemaps are supports, for both stacktraces and the snippet.
 
 ## Usage
 `jsdom-eval ./my.js --html ./optional.html`
@@ -13,7 +17,7 @@ or
 
 ## run tape tests in jsdom
 
-`browserify ./my_tape_test.js | jsdom-eval | faucet`
+`browserify ./my_tape_test.js -d | jsdom-eval | faucet`
 
 ## API
 

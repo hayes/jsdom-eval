@@ -76,7 +76,8 @@ function run(script, html, done) {
       , column: +parts[3]
     })
 
-    original.content = sourcemap.sourceContentFor(original.source).split('\n')
+    original.sourceContent = sourcemap.sourceContentFor(original.source)
+      .split('\n')
 
     return original
   }

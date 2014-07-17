@@ -49,14 +49,14 @@ function run() {
 function on_error(err) {
   var original = err.originalLocation
 
-  if(!original || !original.content) {
+  if(!original || !original.sourceContent) {
     console.error(err.stack)
     process.exit(1)
   }
 
 
   var first = Math.max(original.line - 5, 0)
-  var snipet = original.content.slice(first, 11)
+  var snipet = original.sourceContent.slice(first, 11)
 
   snipet.splice(
       original.line - first
@@ -64,7 +64,7 @@ function on_error(err) {
     , new Array(original.column + 1).join(' ') + '^'
   )
 
+  console.error(err.stack + '\n\n')
   console.error(snipet.join('\n'))
-  console.error(err.stack)
   process.exit(1)
 }
