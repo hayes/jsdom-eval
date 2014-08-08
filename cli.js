@@ -30,7 +30,7 @@ function got_js(data) {
   js = data.toString()
 
   if(!--remaining) {
-    run()
+    jsdom_eval(js, html)
   }
 }
 
@@ -38,33 +38,6 @@ function got_html(data) {
   html = data.toString()
 
   if(!--remaining) {
-    run()
+    jsdom_eval(js, html)
   }
-}
-
-function run() {
-  jsdom_eval(js, html, on_error)
-}
-
-function on_error(err) {
-  var original = err.originalLocation
-
-  if(!original || !original.sourceContent) {
-    console.error(err.stack)
-    process.exit(1)
-  }
-
-
-  var first = Math.max(original.line - 5, 0)
-  var snipet = original.sourceContent.slice(first, 11)
-
-  snipet.splice(
-      original.line - first
-    , 0
-    , new Array(original.column + 1).join(' ') + '^'
-  )
-
-  console.error(err.stack + '\n\n')
-  console.error(snipet.join('\n'))
-  process.exit(1)
 }

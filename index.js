@@ -6,7 +6,7 @@ var error_regexp = /(\(.*?:undefined:undefined<script>):(\d+):(\d+)\)$/
 
 module.exports = run
 
-function run(script, html, done) {
+function run(script, html) {
   var sourcemap = convert.fromSource(script)
 
   if(sourcemap) {
@@ -22,63 +22,46 @@ function run(script, html, done) {
 
   function setup(err, window) {
     if(err) {
-      return done(err)
+      throw err
     }
 
+    window.Error.prepareStackTrace = prepareStackTrace
     Object.keys(console).forEach(function(name) {
       if(typeof console[name] === 'function') {
         window.console[name] = console[name].bind(console)
       }
     })
-
-    process.on('uncaughtException', handle_error)
   }
 
   function loaded(errs, window) {
-    if(errs) {
-      errs.forEach(function(err) {
-        handle_error(err.data.error)
-      })
+    if(errs && errs.length) {
+      throw errs[0]
     }
   }
 
-  function handle_error(err) {
-    var stack = err.stack.split('\n')
+  function prepareStackTrace(err, stack) {
+    return stack.reduce(function(trace, frame) {
+      var name = frame.getTypeName()
+        , out = trace + '\n at '
+        , original
 
-    err.stack = [stack[0]].concat(stack.slice(1).map(update_line)).join('\n')
-    err.originalLocation = get_original(stack[1])
-    done(err)
-  }
+      if(sourcemap) {
+        original = sourcemap.originalPositionFor({
+            line: frame.getLineNumber()
+          , column: frame.getColumnNumber()
+        })
+      }
 
-  function update_line(line) {
-    var original = get_original(line)
-      , new_end
+      if(!original) {
+        return out + frame
+      }
 
-    if(!original) {
-      return line
-    }
+      if(name === '[object Object]') {
+        name = frame.getFunctionName()
+      }
 
-    new_end = '(' + original.source + ':' +
-      original.line + ':' + original.column + ')'
-
-    return line.replace(error_regexp, new_end)
-  }
-
-  function get_original(line, column) {
-    var parts = line.match(error_regexp)
-
-    if(!parts) {
-      return
-    }
-
-    var original = sourcemap.originalPositionFor({
-        line: +parts[2]
-      , column: +parts[3]
-    })
-
-    original.sourceContent = sourcemap.sourceContentFor(original.source)
-      .split('\n')
-
-    return original
+      return out + ' ' + name + '.' + frame.getMethodName() + ' (' +
+        original.source + ':' + original.line + ':' + original.column + ')'
+    }, err)
   }
 }
