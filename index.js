@@ -2,8 +2,6 @@ var convert = require('convert-source-map')
   , smap = require('source-map')
   , jsdom = require('jsdom')
 
-var error_regexp = /(\(.*?:undefined:undefined<script>):(\d+):(\d+)\)$/
-
 module.exports = run
 
 function run(script, html) {
