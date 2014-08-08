@@ -33,13 +33,14 @@ function run(script, html) {
 
   function loaded(errs, window) {
     if(errs && errs.length) {
-      throw errs[0]
+      throw errs[0].data.error
     }
   }
 
   function prepareStackTrace(err, stack) {
     return stack.reduce(function(trace, frame) {
-      var name = frame.getTypeName()
+      var method = frame.getMethodName()
+        , name = frame.getTypeName()
         , out = trace + '\n at '
         , original
 
@@ -56,10 +57,13 @@ function run(script, html) {
 
       if(name === '[object Object]') {
         name = frame.getFunctionName()
+      } else if(method === null) {
+        name = frame.getTypeName()
+        method = frame.getFunctionName()
       }
 
-      return out + ' ' + name + '.' + frame.getMethodName() + ' (' +
-        original.source + ':' + original.line + ':' + original.column + ')'
+      return out + ' ' + name + '.' + method + ' (' + original.source + ':' +
+        original.line + ':' + original.column + ')'
     }, err)
   }
 }
