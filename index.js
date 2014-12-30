@@ -6,6 +6,7 @@ module.exports = run
 
 function run(script, html) {
   var sourcemap = convert.fromSource(script)
+  var originalPrepareStackTrace
 
   if(sourcemap) {
     sourcemap = new smap.SourceMapConsumer(sourcemap.toJSON())
@@ -23,6 +24,7 @@ function run(script, html) {
       throw err
     }
 
+    originalPrepareStackTrace = window.Error.prepareStackTrace
     window.Error.prepareStackTrace = prepareStackTrace
     Object.keys(console).forEach(function(name) {
       if(typeof console[name] === 'function') {
@@ -38,32 +40,40 @@ function run(script, html) {
   }
 
   function prepareStackTrace(err, stack) {
-    return stack.reduce(function(trace, frame) {
-      var method = frame.getMethodName()
-        , name = frame.getTypeName()
-        , out = trace + '\n at '
-        , original
+    var message
 
-      if(sourcemap) {
-        original = sourcemap.originalPositionFor({
-            line: frame.getLineNumber()
-          , column: frame.getColumnNumber()
-        })
-      }
+    try {
+      message = stack.reduce(function(trace, frame) {
+        var method = frame.getMethodName()
+          , name = frame.getTypeName()
+          , out = trace + '\n at '
+          , original
 
-      if(!original) {
-        return out + frame
-      }
+        if(sourcemap) {
+          original = sourcemap.originalPositionFor({
+              line: frame.getLineNumber()
+            , column: frame.getColumnNumber()
+          })
+        }
 
-      if(name === '[object Object]') {
-        name = frame.getFunctionName()
-      } else if(method === null) {
-        name = frame.getTypeName()
-        method = frame.getFunctionName()
-      }
+        if(!original) {
+          return out + frame
+        }
 
-      return out + ' ' + name + '.' + method + ' (' + original.source + ':' +
-        original.line + ':' + original.column + ')'
-    }, err)
+        if(name === '[object Object]') {
+          name = frame.getFunctionName()
+        } else if(method === null) {
+          name = frame.getTypeName()
+          method = frame.getFunctionName()
+        }
+
+        return out + ' ' + name + '.' + method + ' (' + original.source + ':' +
+          original.line + ':' + original.column + ')'
+      }, err)
+    } catch(e) {
+      message = originalPrepareStackTrace(err, stack)
+    }
+
+    return message
   }
 }
