@@ -25,7 +25,6 @@ function run(script, html) {
     }
 
     originalPrepareStackTrace = window.Error.prepareStackTrace
-    window.Error.prepareStackTrace = prepareStackTrace
     Object.keys(console).forEach(function(name) {
       if(typeof console[name] === 'function') {
         window.console[name] = console[name].bind(console)
