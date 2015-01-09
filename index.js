@@ -9,4 +9,5 @@ module.exports = function run(script, html, handler) {
   var child = cp.fork('./env')
   child.on('message', handler)
   child.send({script: script, html: html})
+  return child
 }
