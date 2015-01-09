@@ -7,7 +7,7 @@
   "description": "eval js inside jsdom for simple testing that requires the dom",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test"
   },
   "repository": {
     "type": "git",
@@ -31,5 +31,9 @@
     "jsdom": "^2.0.0",
     "minimist": "^0.1.0",
     "source-map": "^0.1.37"
+  },
+  "devDependencies": {
+    "browserify": "^8.0.3",
+    "tape": "^3.0.3"
   }
 }

@@ -30,7 +30,7 @@ function got_js(data) {
   js = data.toString()
 
   if(!--remaining) {
-    jsdom_eval(js, html)
+    jsdom_eval(js, html, log)
   }
 }
 
@@ -38,6 +38,10 @@ function got_html(data) {
   html = data.toString()
 
   if(!--remaining) {
-    jsdom_eval(js, html)
+    jsdom_eval(js, html, log)
   }
+}
+
+function log(data) {
+  console[data.method](data.message)
 }
