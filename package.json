@@ -1,6 +1,6 @@
 {
   "name": "jsdom-eval",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "bin": {
     "jsdom-eval": "./cli.js"
   },
