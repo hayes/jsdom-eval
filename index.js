@@ -6,7 +6,7 @@ module.exports = function run(script, html, handler) {
     html = ''
   }
 
-  var child = cp.fork('./env')
+  var child = cp.fork(__dirname + '/env')
   child.on('message', handler)
   child.send({script: script, html: html})
   return child
