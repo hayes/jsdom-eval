@@ -56,9 +56,6 @@ function run(script, html, send) {
   }
 
   function loaded(errs, window) {
-    if(errs && errs.length && callback) {
-      return errs.map(callback)
-    }
     if(errs && errs.length) {
       throw errs[0].data.error
     }
