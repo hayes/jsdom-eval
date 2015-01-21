@@ -19,7 +19,6 @@ process.on('uncaughtException', function(err) {
 
 function run(script, html, send) {
   var sourcemap = convert.fromSource(script)
-  var originalPrepareStackTrace
 
   if(sourcemap) {
     sourcemap = new smap.SourceMapConsumer(sourcemap.toJSON())
@@ -37,7 +36,6 @@ function run(script, html, send) {
       throw err
     }
 
-    originalPrepareStackTrace = window.Error.prepareStackTrace
     window.Error.prepareStackTrace = prepareStackTrace
     var methods = ['info', 'warn', 'trace']
     methods.forEach(function(method) {
@@ -74,15 +72,26 @@ function run(script, html, send) {
       'isToplevee',
       'isEvae',
       'isNative',
-      'isConstructor',
+      'isConstructor'
     ]
 
-    message = stack.reduce(function(trace, frame, i) {
+    message = stack.reduce(combineIntoTrace, err)
+
+    return message
+
+    function combineIntoTrace(trace, frame, i) {
       if(!frame) return trace
+
       var names = getters.reduce(function(map, getter) {
-        map[getter] = frame[getter] && frame[getter]()
+        try {
+          map[getter] = frame[getter] && frame[getter]()
+        } catch(e) {
+          // uh....
+        }
         return map
       }, {})
+
+
 
       var original
 
@@ -124,8 +133,6 @@ function run(script, html, send) {
       }
 
       return out + ' ' + location
-    }, err)
-
-    return message || originalPrepareStackTrace(err)
+    }
   }
 }
