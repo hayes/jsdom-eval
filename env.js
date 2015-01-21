@@ -70,9 +70,9 @@ function run(script, html, send) {
       'getFileName',
       'getLineNumber',
       'getColumnNumber',
-      'getEvalOrigie',
-      'isToplevee',
-      'isEvae',
+      'getEvalOrigin',
+      'isToplevel',
+      'isEval',
       'isNative',
       'isConstructor',
     ]
