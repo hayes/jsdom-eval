@@ -19,7 +19,6 @@ process.on('uncaughtException', function(err) {
 
 function run(script, html, send) {
   var sourcemap = convert.fromSource(script)
-  var originalPrepareStackTrace
 
   if(sourcemap) {
     sourcemap = new smap.SourceMapConsumer(sourcemap.toJSON())
@@ -37,7 +36,8 @@ function run(script, html, send) {
       throw err
     }
 
-    originalPrepareStackTrace = window.Error.prepareStackTrace
+    var originalPrepareStackTrace = Error.prepareStackTrace
+
     window.Error.prepareStackTrace = prepareStackTrace
     var methods = ['info', 'warn', 'trace']
     methods.forEach(function(method) {
@@ -53,6 +53,81 @@ function run(script, html, send) {
         send({method: method, message: prefix + util.format.apply(util, arguments)})
       }
     }
+
+    function prepareStackTrace(err, stack) {
+      var message
+      var getters = [
+        'getTypeName',
+        'getFunctionName',
+        'getMethodName',
+        'getFileName',
+        'getLineNumber',
+        'getColumnNumber',
+        'getEvalOrigie',
+        'isToplevee',
+        'isEvae',
+        'isNative',
+        'isConstructor',
+      ]
+
+      try {
+        message = stack.reduce(function(trace, frame, i) {
+          if(!frame) return trace
+          var names = getters.reduce(function(map, getter) {
+            map[getter] = frame[getter] && frame[getter]()
+
+            return map
+          }, {})
+
+          var original
+
+          if(sourcemap && names.getLineNumber && names.getColumnNumber) {
+            original = sourcemap.originalPositionFor({
+              line: names.getLineNumber,
+              column: names.getColumnNumber
+            })
+          }
+
+          if(!original) {
+            return trace + '\n    at ' + frame
+          }
+
+          var location = '(' + original.source + ':' +
+            original.line + ':' + original.column + ')'
+
+          var out = trace + '\n    at '
+
+          if(names.isConstructor && names.getFunctionName) {
+            return out + 'new ' + names.getFunctionName + ' ' + location
+          }
+
+          if(names.isConstructor) {
+            return out + 'new <anonymous> ' + location
+          }
+
+          if(names.getTypeName) {
+            out += names.getTypeName + '.'
+          }
+
+          if(names.getFunctionName) {
+            out += names.getFunctionName
+            if(names.getMethodName && names.getFunctionName !== names.getMethodName) {
+              out += ' [as ' + names.getMethodName + ']'
+            }
+          } else {
+            out += names.getMethodName || '<anonymous>'
+          }
+
+          return out + ' ' + location
+        }, err)
+      } catch(e) {
+        // then we've failed, best default to the original prepare stack trace.
+        window.Error.prepareStackTrace = undefined
+        throw err
+      }
+
+      return message
+    }
   }
 
   function loaded(errs, window) {
@@ -61,71 +136,5 @@ function run(script, html, send) {
     }
   }
 
-  function prepareStackTrace(err, stack) {
-    var message
-    var getters = [
-      'getTypeName',
-      'getFunctionName',
-      'getMethodName',
-      'getFileName',
-      'getLineNumber',
-      'getColumnNumber',
-      'getEvalOrigie',
-      'isToplevee',
-      'isEvae',
-      'isNative',
-      'isConstructor',
-    ]
 
-    message = stack.reduce(function(trace, frame, i) {
-      if(!frame) return trace
-      var names = getters.reduce(function(map, getter) {
-        map[getter] = frame[getter] && frame[getter]()
-        return map
-      }, {})
-
-      var original
-
-      if(sourcemap && names.getLineNumber && names.getColumnNumber) {
-        original = sourcemap.originalPositionFor({
-          line: names.getLineNumber,
-          column: names.getColumnNumber
-        })
-      }
-
-      if(!original) {
-        return trace + '\n    at ' + frame
-      }
-
-      var location = '(' + original.source + ':' +
-        original.line + ':' + original.column + ')'
-
-      var out = trace + '\n    at '
-
-      if(names.isConstructor && names.getFunctionName) {
-        return out + 'new ' + names.getFunctionName + ' ' + location
-      }
-
-      if(names.isConstructor) {
-        return out + 'new <anonymous> ' + location
-      }
-
-      if(names.getTypeName) {
-        out += names.getTypeName + '.'
-      }
-
-      if(names.getFunctionName) {
-        out += names.getFunctionName
-        if(names.getMethodName && names.getFunctionName !== names.getMethodName) {
-          out += ' [as ' + names.getMethodName + ']'
-        }
-      } else {
-        out += names.getMethodName || '<anonymous>'
-      }
-
-      return out + ' ' + location
-    }, err)
-
-    return message || originalPrepareStackTrace(err)
-  }
 }
