@@ -1,8 +1,8 @@
 var convert = require('convert-source-map')
 var smap = require('source-map')
 var jsdom = require('jsdom')
-var cp = require('child_process')
 var util = require('util')
+var attach = require('./stacktrace')
 
 module.exports = run
 
@@ -11,7 +11,6 @@ process.once('message', function(data) {
     process.send(data)
   })
 })
-
 
 process.on('uncaughtException', function(err) {
   process.send({method: 'error', message: err.stack})
@@ -36,7 +35,10 @@ function run(script, html, send) {
       throw err
     }
 
-    window.Error.prepareStackTrace = prepareStackTrace
+    if(sourcemap) {
+      attach(sourcemap, window.Error)
+    }
+
     var methods = ['info', 'warn', 'trace']
     methods.forEach(function(method) {
       window.console[method] = logger(method + ':', 'log')
@@ -56,83 +58,6 @@ function run(script, html, send) {
   function loaded(errs, window) {
     if(errs && errs.length) {
       throw errs[0].data.error
-    }
-  }
-
-  function prepareStackTrace(err, stack) {
-    var message
-    var getters = [
-      'getTypeName',
-      'getFunctionName',
-      'getMethodName',
-      'getFileName',
-      'getLineNumber',
-      'getColumnNumber',
-      'getEvalOrigin',
-      'isToplevel',
-      'isEval',
-      'isNative',
-      'isConstructor'
-    ]
-
-    message = stack.reduce(combineIntoTrace, err)
-
-    return message
-
-    function combineIntoTrace(trace, frame, i) {
-      if(!frame) return trace
-
-      var names = getters.reduce(function(map, getter) {
-        try {
-          map[getter] = frame[getter] && frame[getter]()
-        } catch(e) {
-          // uh....
-        }
-        return map
-      }, {})
-
-
-
-      var original
-
-      if(sourcemap && names.getLineNumber && names.getColumnNumber) {
-        original = sourcemap.originalPositionFor({
-          line: names.getLineNumber,
-          column: names.getColumnNumber
-        })
-      }
-
-      if(!original) {
-        return trace + '\n    at ' + frame
-      }
-
-      var location = '(' + original.source + ':' +
-        original.line + ':' + original.column + ')'
-
-      var out = trace + '\n    at '
-
-      if(names.isConstructor && names.getFunctionName) {
-        return out + 'new ' + names.getFunctionName + ' ' + location
-      }
-
-      if(names.isConstructor) {
-        return out + 'new <anonymous> ' + location
-      }
-
-      if(names.getTypeName) {
-        out += names.getTypeName + '.'
-      }
-
-      if(names.getFunctionName) {
-        out += names.getFunctionName
-        if(names.getMethodName && names.getFunctionName !== names.getMethodName) {
-          out += ' [as ' + names.getMethodName + ']'
-        }
-      } else {
-        out += names.getMethodName || '<anonymous>'
-      }
-
-      return out + ' ' + location
     }
   }
 }
